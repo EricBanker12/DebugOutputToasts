@@ -1,0 +1,132 @@
+﻿<Window x:Class="DebugOutputToasts.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DebugOutputToasts"
+        mc:Ignorable="d"
+        Icon="/DebugOutputToasts.ico"
+        Title="DebugOutputToasts" Height="450" Width="800">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="150"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" VerticalAlignment="Bottom" FontWeight="Bold">Debug Output</Label>
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Name="MessagePanel" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Stretch" Loaded="StackPanel_Loaded_MessagePanel" Unloaded="StackPanel_Unloaded_MessagePanel">
+                <!--Debug output populates here-->
+            </StackPanel>
+        </ScrollViewer>
+
+        <Label Grid.Row="2" FontWeight="Bold">Settings</Label>
+        <TabControl Grid.Row="3">
+            <TabItem Header="Notification Settings">
+                <Grid x:Name="NotificationGrid">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Row="0" Grid.Column="0">Show Notifications:</Label>
+                    <Label Grid.Row="0" Grid.Column="1">
+                        <CheckBox Name="chkShowNotifications" Checked="CheckBox_Checked" Unchecked="CheckBox_Unhecked"/>
+                    </Label>
+
+                    <Label Grid.Row="0" Grid.Column="2">Play Sound:</Label>
+                    <Label Grid.Row="0" Grid.Column="3">
+                        <CheckBox Name="chkPlaySound" Checked="CheckBox_Checked" Unchecked="CheckBox_Unhecked"/>
+                    </Label>
+
+                    <Label Grid.Row="1" Grid.Column="0" ToolTip="Wait after queuing a notification. Skip following notifications while waiting.">Throttle Notifications:</Label>
+                    <Label Grid.Row="1" Grid.Column="1">
+                        <CheckBox x:Name="chkThrottle" Checked="CheckBox_Checked" Unchecked="CheckBox_Checked"/>
+                    </Label>
+                    <Label Grid.Row="1" Grid.Column="2">Wait (ms):</Label>
+                    <TextBox x:Name="txtThrottle" Grid.Row="1" Grid.Column="3" Margin="2" Width="80" TextChanged="TextBox_TextChanged_WaitTime" />
+
+                    <Label Grid.Row="2" Grid.Column="0" ToolTip="Wait before queueing each notification. Show only the last notification after waiting.">Debounce Notifications:</Label>
+                    <Label Grid.Row="2" Grid.Column="1">
+                        <CheckBox x:Name="chkDebounce" Checked="CheckBox_Checked" Unchecked="CheckBox_Unhecked"/>
+                    </Label>
+                    <Label Grid.Row="2" Grid.Column="2">Delay (ms):</Label>
+                    <TextBox x:Name="txtDebounce" Grid.Row="2" Grid.Column="3" Margin="2" Width="80" TextChanged="TextBox_TextChanged_WaitTime" />
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Inclusion Filters">
+                <ScrollViewer>
+                    <Grid x:Name="InclusionGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*" MaxWidth="300"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Grid.Column="6" Width="50" Margin="2" Click="Button_Click_Add">Add</Button>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Exclusion Filters">
+                <ScrollViewer>
+                    <Grid x:Name="ExclusionGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*" MaxWidth="300"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Grid.Column="6" Width="50" Margin="2" Click="Button_Click_Add">Add</Button>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Replacement Filters">
+                <ScrollViewer>
+                    <Grid x:Name="ReplacementGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*" MaxWidth="300"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*" MaxWidth="300"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Grid.Column="8" Width="50" Margin="2" Click="Button_Click_Add">Add</Button>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
