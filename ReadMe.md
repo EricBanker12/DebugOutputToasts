@@ -15,3 +15,22 @@ This is a simple WPF application which captures Kernel32.dll OutputDebugString m
   * Replacement Filters - Replace part of a message with a given replacement.
 
 ## Images
+
+**Notification Settings**  
+This configuration will silently display Toast notifications, skipping following notifications for 5 seconds.  
+![](https://raw.githubusercontent.com/EricBanker12/DebugOutputToasts/master/Images/Settings.png)
+
+**Toast Notification**  
+![](https://raw.githubusercontent.com/EricBanker12/DebugOutputToasts/master/Images/Notification.png)
+
+**Inclusion Filter**  
+This filter forces only messages containing 'hello' (case-insensitive) to be shown or notified. 
+![](https://raw.githubusercontent.com/EricBanker12/DebugOutputToasts/master/Images/Inclusion.png)
+
+**Exclusion Filter**  
+This filter forces messages containing 'Hello' (case-sensitive) to be hidden.  
+![](https://raw.githubusercontent.com/EricBanker12/DebugOutputToasts/master/Images/Exclusion.png)
+
+**Replacement Filter**  
+This filter uses Regular Expression to replace parts of a matching message with new content.  
+![](https://raw.githubusercontent.com/EricBanker12/DebugOutputToasts/master/Images/Replace.png)
