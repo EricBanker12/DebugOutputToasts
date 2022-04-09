@@ -19,6 +19,7 @@ namespace DebugOutputToasts
     /// </summary>
     public partial class MainWindow : Window
     {
+        private string ConfigPath = null;
         private Configuration Config = null;
         private DebugOutputMonitor Monitor = null;
         private Queue<string> MessageHistory = null;
@@ -29,40 +30,73 @@ namespace DebugOutputToasts
         
         private CancellationTokenSource FilterCancel = null;
         private CancellationTokenSource NotifyCancel = null;
+        
+        private System.Windows.Forms.NotifyIcon NotifyIcon = null;
 
         public MainWindow()
         {
             InitializeComponent();
 
+            string configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DebugOutputToasts");
+            if (!Directory.Exists(configDir))
+            {
+                Directory.CreateDirectory(configDir);
+            }
+
+            ConfigPath = Path.Combine(configDir, "config.ini");
+
             try
             {
-                Config = Nett.Toml.ReadFile<Configuration>("./config.ini");
+                Config = Nett.Toml.ReadFile<Configuration>(ConfigPath);
             }
             catch (Exception)
             {
                 try
                 {
-                    using(var reader = new FileStream("./config.ini", FileMode.Open))
-                        using(var writer = new FileStream("./config.backup.ini", FileMode.Create))
+                    using(var reader = new FileStream(ConfigPath, FileMode.Open))
+                        using(var writer = new FileStream(ConfigPath.Replace(".ini", ".backup.ini"), FileMode.Create))
                             reader.CopyTo(writer);
                 }
                 catch (Exception) { }
 
                 Config = new Configuration();
-                Nett.Toml.WriteFile(Config, "./config.ini");
+                Nett.Toml.WriteFile(Config, ConfigPath);
             }
 
             Closed += new EventHandler(MainWindow_Closed);
+
+            // Create tray icon and context menu
+            NotifyIcon = new System.Windows.Forms.NotifyIcon();
+            NotifyIcon.Icon = Properties.Resources.DebugOutputToasts;
+            NotifyIcon.Visible = false;
+            NotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(Icon_MouseClick);
+
+            NotifyIcon.ContextMenu = new System.Windows.Forms.ContextMenu();
+            EventHandler showEventHandler = (sender, e) => Icon_MouseClick(sender, new System.Windows.Forms.MouseEventArgs(System.Windows.Forms.MouseButtons.Left, 0, 0, 0, 0));
+            EventHandler closeEventHandler = (sender, e) => this.Close();
+            NotifyIcon.ContextMenu.MenuItems.Add("Show", showEventHandler);
+            NotifyIcon.ContextMenu.MenuItems.Add("Exit", closeEventHandler);
         }
 
         #region Event Handlers
         private void MainWindow_Closed(object sender, EventArgs e)
         {
-            Nett.Toml.WriteFile(Config, "./config.ini");
+            Nett.Toml.WriteFile(Config, ConfigPath);
             
             ToastNotificationManagerCompat.Uninstall();
 
             if (Monitor != null) Monitor.Dispose();
+            if (NotifyIcon != null) NotifyIcon.Dispose();
+        }
+
+        private void Icon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Left)
+            {
+                this.Show();
+                this.WindowState = WindowState.Normal;
+                NotifyIcon.Visible = false;
+            }
         }
 
         private void StackPanel_Loaded_MessagePanel(object sender, RoutedEventArgs e)
@@ -74,6 +108,7 @@ namespace DebugOutputToasts
             chkPlaySound.IsChecked = Config.PlaySound;
             chkThrottle.IsChecked = Config.Throttle;
             chkDebounce.IsChecked = Config.Debounce;
+            chkMinimizeToTray.IsChecked = Config.MinimizeToTrayIcon;
             txtThrottle.Text = Config.ThrottleTime.ToString();
             txtDebounce.Text = Config.DebounceTime.ToString();
 
@@ -116,6 +151,9 @@ namespace DebugOutputToasts
                 case "chkDebounce":
                     Config.Debounce = true;
                     break;
+                case "chkMinimizeToTray":
+                    Config.MinimizeToTrayIcon = true;
+                    break;
             }
         }
 
@@ -135,6 +173,9 @@ namespace DebugOutputToasts
                     break;
                 case "chkDebounce":
                     Config.Debounce = false;
+                    break;
+                case "chkMinimizeToTray":
+                    Config.MinimizeToTrayIcon = false;
                     break;
             }
         }
@@ -877,5 +918,15 @@ namespace DebugOutputToasts
                 Grid.SetRow(element, adjacentIndex);
         }
         #endregion
+
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            if (Config.MinimizeToTrayIcon && this.WindowState == WindowState.Minimized)
+            {
+                this.Hide();
+                NotifyIcon.Visible = true;
+                //NotifyIcon.ShowBalloonTip(5000, "Minimized to a tray icon", "Left-click to show. Right-click for options.", System.Windows.Forms.ToolTipIcon.None);
+            }
+        }
     }
 }

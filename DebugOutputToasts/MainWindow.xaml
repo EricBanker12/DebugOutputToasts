@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:DebugOutputToasts"
         mc:Ignorable="d"
         Icon="/DebugOutputToasts.ico"
-        Title="DebugOutputToasts" Height="450" Width="800">
+        Title="DebugOutputToasts" Height="450" Width="800" Deactivated="Window_Deactivated">
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -40,6 +40,7 @@
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
 
                     <Label Grid.Row="0" Grid.Column="0">Show Notifications:</Label>
@@ -65,6 +66,11 @@
                     </Label>
                     <Label Grid.Row="2" Grid.Column="2">Delay (ms):</Label>
                     <TextBox x:Name="txtDebounce" Grid.Row="2" Grid.Column="3" Margin="2" Width="80" TextChanged="TextBox_TextChanged_WaitTime" />
+
+                    <Label Grid.Row="3" Grid.Column="0" ToolTip="Minimize to Tray Icon instead of Taskbar.">Minimize to Tray Icon:</Label>
+                    <Label Grid.Row="3" Grid.Column="1">
+                        <CheckBox x:Name="chkMinimizeToTray" Checked="CheckBox_Checked" Unchecked="CheckBox_Unhecked"/>
+                    </Label>
                 </Grid>
             </TabItem>
 
