@@ -22,7 +22,7 @@ namespace DebugOutputToasts
         private string ConfigPath = null;
         private Configuration Config = null;
         private DebugOutputMonitor Monitor = null;
-        private Queue<string> MessageHistory = null;
+        private Queue<(string uid, string text)> MessageHistory = null;
         private DateTime NotificationWait = default;
         
         private Task FilterTask = null;
@@ -101,7 +101,7 @@ namespace DebugOutputToasts
 
         private void StackPanel_Loaded_MessagePanel(object sender, RoutedEventArgs e)
         {
-            MessageHistory = new Queue<string>(Config.MaxDebugMessageHistory);
+            MessageHistory = new Queue<(string uid, string text)>(Config.MaxDebugMessageHistory);
 
             // load config
             chkShowNotifications.IsChecked = Config.ShowNotifications;
@@ -155,6 +155,7 @@ namespace DebugOutputToasts
                     Config.MinimizeToTrayIcon = true;
                     break;
             }
+            Nett.Toml.WriteFile(Config, ConfigPath);
         }
 
         private void CheckBox_Unhecked(object sender, RoutedEventArgs e)
@@ -178,6 +179,7 @@ namespace DebugOutputToasts
                     Config.MinimizeToTrayIcon = false;
                     break;
             }
+            Nett.Toml.WriteFile(Config, ConfigPath);
         }
 
         private void TextBox_TextChanged_WaitTime(object sender, TextChangedEventArgs e)
@@ -203,6 +205,7 @@ namespace DebugOutputToasts
                         Config.DebounceTime = waitTime;
                         break;
                 }
+                Nett.Toml.WriteFile(Config, ConfigPath);
             }
             else
             {
@@ -231,6 +234,8 @@ namespace DebugOutputToasts
 
             FilterCancel = new CancellationTokenSource();
             FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+            
+            Nett.Toml.WriteFile(Config, ConfigPath);
         }
 
         private void CheckBox_Unchecked_Aa(object sender, RoutedEventArgs e)
@@ -252,7 +257,10 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });        }
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+
+            Nett.Toml.WriteFile(Config, ConfigPath);
+        }
 
         // Filter Regular Expression
         private void CheckBox_Checked_Rx(object sender, RoutedEventArgs e)
@@ -274,7 +282,10 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });        }
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+
+            Nett.Toml.WriteFile(Config, ConfigPath);
+        }
 
         private void CheckBox_Unchecked_Rx(object sender, RoutedEventArgs e)
         {
@@ -295,7 +306,10 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });        }
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+
+            Nett.Toml.WriteFile(Config, ConfigPath);
+        }
 
         // Filter Up
         private void Button_Click_Up(object sender, RoutedEventArgs e)
@@ -323,7 +337,11 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });        }
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+
+
+            Nett.Toml.WriteFile(Config, ConfigPath);
+        }
 
         // Filter Down
         private void Button_Click_Down(object sender, RoutedEventArgs e)
@@ -351,7 +369,10 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });        }
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+
+            Nett.Toml.WriteFile(Config, ConfigPath);
+        }
 
         // Filter Delete
         private void Button_Click_Delete(object sender, RoutedEventArgs e)
@@ -380,7 +401,10 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });        }
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+
+            Nett.Toml.WriteFile(Config, ConfigPath);
+        }
 
         // Filter Add
         private void Button_Click_Add(object sender, RoutedEventArgs e)
@@ -395,6 +419,9 @@ namespace DebugOutputToasts
 
             else if (ReplacementGrid.Children.Contains(button))
                 AddGridFilterRow(ReplacementGrid, AddConfigFilter(Config, FilterType.Replacement));
+
+
+            Nett.Toml.WriteFile(Config, ConfigPath);
         }
 
         // Find Text
@@ -417,7 +444,10 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });        }
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+
+            Nett.Toml.WriteFile(Config, ConfigPath);
+        }
 
         // Replace Text
         private void TextBox_TextChanged_Replace(object sender, TextChangedEventArgs e)
@@ -433,7 +463,10 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });        }
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+
+            Nett.Toml.WriteFile(Config, ConfigPath);
+        }
         #endregion
 
         #region Event Helpers
@@ -460,14 +493,20 @@ namespace DebugOutputToasts
             string text = $"{processName ?? debugOutput.dwProcessId.ToString()}\r\n{debugOutput.outputDebugString}";
 
             // add to history
-            if (MessageHistory.Count >= Config.MaxDebugMessageHistory) MessageHistory.Dequeue();
-            MessageHistory.Enqueue(text);
+            if (MessageHistory.Count >= Config.MaxDebugMessageHistory)
+            {
+                var removed = MessageHistory.Dequeue();
+                if (MessagePanel.Children[MessagePanel.Children.Count - 1].Uid == removed.uid)
+                    MessagePanel.Children.RemoveAt(MessagePanel.Children.Count - 1);
+            }
+            string uid = Guid.NewGuid().ToString();
+            MessageHistory.Enqueue((uid: uid, text: text));
 
             // apply filters
             text = ApplyFilters(text);
             if (string.IsNullOrEmpty(text)) return;
 
-            Message msg = new Message(text);
+            Message msg = new Message(text, uid);
 
             // add to message panel
             TextBlock textBlock = new TextBlock { TextWrapping = TextWrapping.Wrap };
@@ -477,7 +516,9 @@ namespace DebugOutputToasts
                 textBlock.Inlines.Add("\r\n");
                 textBlock.Inlines.Add(msg.body);
             }
+            textBlock.Uid = msg.uid;
             MessagePanel.Children.Insert(0, textBlock);
+
 
             // add notification
             if (Config.ShowNotifications)
@@ -529,11 +570,13 @@ namespace DebugOutputToasts
 
         public struct Message
         {
+            public string uid;
             public string title;
             public string body;
 
-            public Message(string text)
+            public Message(string text, string uid)
             {
+                this.uid = uid;
                 var matchTitleBody = Regex.Match(text, @"^(.*?)\r\n(.*)$", RegexOptions.Singleline);
                 if (matchTitleBody.Success)
                 {
@@ -551,9 +594,9 @@ namespace DebugOutputToasts
         private async Task ReapplyFilters(CancellationToken token)
         {
             var filtered = await Task.Run(() => MessageHistory
-                .Select(msg => ApplyFilters(msg))
-                .Where(msg => !string.IsNullOrEmpty(msg))
-                .Select(msg => new Message(msg))
+                .Select(msg => (uid: msg.uid, text: ApplyFilters(msg.text)))
+                .Where(msg => !string.IsNullOrEmpty(msg.text))
+                .Select(msg => new Message(msg.text, msg.uid))
                 .Reverse()
                 , token);
                 
@@ -569,6 +612,7 @@ namespace DebugOutputToasts
                     textBlock.Inlines.Add("\r\n");
                     textBlock.Inlines.Add(msg.body);
                 }
+                textBlock.Uid = msg.uid;
                 MessagePanel.Children.Add(textBlock);
             };
         }
