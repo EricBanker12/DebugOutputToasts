@@ -27,10 +27,12 @@ namespace DebugOutputToasts
         
         private Task FilterTask = null;
         private Task NotifyTask = null;
+        private Task RefreshTask = null;
         
         private CancellationTokenSource FilterCancel = null;
         private CancellationTokenSource NotifyCancel = null;
-        
+        private CancellationTokenSource RefreshCancel = null;
+
         private System.Windows.Forms.NotifyIcon NotifyIcon = null;
 
         public MainWindow()
@@ -123,12 +125,30 @@ namespace DebugOutputToasts
 
             // create monitor
             Monitor = new DebugOutputMonitor(DebugOutputHandler);
+
+            // Refresh monitor every 12 hours, a workaround for unknown crashing on long running instance.
+            if (RefreshCancel != null && !RefreshCancel.IsCancellationRequested)
+                RefreshCancel.Cancel();
+            
+            RefreshCancel = new CancellationTokenSource();
+            RefreshTask = new Task(async () =>
+            {
+                while (!RefreshCancel.IsCancellationRequested)
+                {
+                    Monitor.Dispose();
+                    Monitor = new DebugOutputMonitor(DebugOutputHandler);
+                    await Task.Delay(TimeSpan.FromHours(12));
+                }
+            }, RefreshCancel.Token);
+            
+            RefreshTask.Start(TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         private void StackPanel_Unloaded_MessagePanel(object sender, RoutedEventArgs e)
         {
             Monitor.Dispose();
             Monitor = null;
+            RefreshCancel.Cancel();
             MessageHistory.Clear();
             MessageHistory = null;
         }
@@ -233,7 +253,7 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } }, TaskScheduler.FromCurrentSynchronizationContext());
             
             Nett.Toml.WriteFile(Config, ConfigPath);
         }
@@ -257,7 +277,7 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } }, TaskScheduler.FromCurrentSynchronizationContext());
 
             Nett.Toml.WriteFile(Config, ConfigPath);
         }
@@ -282,7 +302,7 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } }, TaskScheduler.FromCurrentSynchronizationContext());
 
             Nett.Toml.WriteFile(Config, ConfigPath);
         }
@@ -306,7 +326,7 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } }, TaskScheduler.FromCurrentSynchronizationContext());
 
             Nett.Toml.WriteFile(Config, ConfigPath);
         }
@@ -337,7 +357,7 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } }, TaskScheduler.FromCurrentSynchronizationContext());
 
 
             Nett.Toml.WriteFile(Config, ConfigPath);
@@ -369,7 +389,7 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } }, TaskScheduler.FromCurrentSynchronizationContext());
 
             Nett.Toml.WriteFile(Config, ConfigPath);
         }
@@ -401,7 +421,7 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } }, TaskScheduler.FromCurrentSynchronizationContext());
 
             Nett.Toml.WriteFile(Config, ConfigPath);
         }
@@ -444,7 +464,7 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } }, TaskScheduler.FromCurrentSynchronizationContext());
 
             Nett.Toml.WriteFile(Config, ConfigPath);
         }
@@ -463,7 +483,7 @@ namespace DebugOutputToasts
                     FilterCancel.Cancel();
 
             FilterCancel = new CancellationTokenSource();
-            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } });
+            FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } }, TaskScheduler.FromCurrentSynchronizationContext());
 
             Nett.Toml.WriteFile(Config, ConfigPath);
         }
