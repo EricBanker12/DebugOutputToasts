@@ -20,7 +20,9 @@ namespace DebugOutputToasts
     public partial class MainWindow : Window
     {
         private string ConfigPath = null;
+        private string ErrorsPath = null;
         private Configuration Config = null;
+        private StreamWriter Errors = null;
         private DebugOutputMonitor Monitor = null;
         private Queue<(string uid, string text)> MessageHistory = null;
         private DateTime NotificationWait = default;
@@ -46,24 +48,34 @@ namespace DebugOutputToasts
             }
 
             ConfigPath = Path.Combine(configDir, "config.ini");
+            ErrorsPath = Path.Combine(configDir, "errors.txt");
+            
+            Errors = new StreamWriter(new FileStream(ErrorsPath, FileMode.Append), encoding: System.Text.Encoding.UTF8);
+            Errors.AutoFlush = true;
 
             try
             {
                 Config = Nett.Toml.ReadFile<Configuration>(ConfigPath);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Errors.WriteLine(DateTime.Now.ToString("[yyyy-MM-ddTHH:mm:ss] ") + e);
+                
                 try
                 {
                     using(var reader = new FileStream(ConfigPath, FileMode.Open))
                         using(var writer = new FileStream(ConfigPath.Replace(".ini", ".backup.ini"), FileMode.Create))
                             reader.CopyTo(writer);
                 }
-                catch (Exception) { }
+                catch (Exception e2)
+                {
+                    Errors.WriteLine(DateTime.Now.ToString("[yyyy-MM-ddTHH:mm:ss] ") + e2);
+                }
 
                 Config = new Configuration();
                 Nett.Toml.WriteFile(Config, ConfigPath);
             }
+
 
             Closed += new EventHandler(MainWindow_Closed);
 
@@ -89,6 +101,7 @@ namespace DebugOutputToasts
 
             if (Monitor != null) Monitor.Dispose();
             if (NotifyIcon != null) NotifyIcon.Dispose();
+            if (Errors != null) Errors.Dispose();
         }
 
         private void Icon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -124,24 +137,24 @@ namespace DebugOutputToasts
                 AddGridFilterRow(ReplacementGrid, filter);
 
             // create monitor
-            Monitor = new DebugOutputMonitor(DebugOutputHandler);
+            Monitor = new DebugOutputMonitor(DebugOutputHandler, Errors);
 
-            // Refresh monitor every 12 hours, a workaround for unknown crashing on long running instance.
-            if (RefreshCancel != null && !RefreshCancel.IsCancellationRequested)
-                RefreshCancel.Cancel();
+            //// Refresh monitor every 12 hours, a workaround for unknown crashing on long running instance.
+            //if (RefreshCancel != null && !RefreshCancel.IsCancellationRequested)
+            //    RefreshCancel.Cancel();
             
-            RefreshCancel = new CancellationTokenSource();
-            RefreshTask = new Task(async () =>
-            {
-                while (!RefreshCancel.IsCancellationRequested)
-                {
-                    Monitor.Dispose();
-                    Monitor = new DebugOutputMonitor(DebugOutputHandler);
-                    await Task.Delay(TimeSpan.FromHours(12));
-                }
-            }, RefreshCancel.Token);
+            //RefreshCancel = new CancellationTokenSource();
+            //RefreshTask = new Task(async () =>
+            //{
+            //    while (!RefreshCancel.IsCancellationRequested)
+            //    {
+            //        Monitor.Dispose();
+            //        Monitor = new DebugOutputMonitor(DebugOutputHandler);
+            //        await Task.Delay(TimeSpan.FromHours(12));
+            //    }
+            //}, RefreshCancel.Token);
             
-            RefreshTask.Start(TaskScheduler.FromCurrentSynchronizationContext());
+            //RefreshTask.Start(TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         private void StackPanel_Unloaded_MessagePanel(object sender, RoutedEventArgs e)

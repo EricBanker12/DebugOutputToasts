@@ -20,6 +20,7 @@ namespace DebugOutputToasts
         private EventWaitHandle dbwin_buffer_ready;
         private EventWaitHandle dbwin_data_ready;
         private Queue<MemoryStream> dbwin_queue;
+        private StreamWriter Errors;
 
         private bool disposedValue;
         private CancellationTokenSource cancellation;
@@ -34,8 +35,12 @@ namespace DebugOutputToasts
         /// Creates a OutputDebugString monitor, which calls an action every message.
         /// </summary>
         /// <param name="action"></param>
-        public DebugOutputMonitor(Action<DebugOutput> action)
+        public DebugOutputMonitor(Action<DebugOutput> action) : this(action, null) { }
+        public DebugOutputMonitor(Action<DebugOutput> action, StreamWriter Errors)
         {
+            if (Errors != null) this.Errors = Errors;
+            else this.Errors = (StreamWriter)Console.Error;
+
             dbwin_queue = new Queue<MemoryStream>();
             
             dbwin_buffer = MemoryMappedFile.CreateNew(DBWIN_BUFFER, 4096, MemoryMappedFileAccess.ReadWrite);
@@ -73,6 +78,7 @@ namespace DebugOutputToasts
             }
             catch (Exception e)
             {
+                Errors.WriteLine($"[{DateTime.Now.ToString("s")}] {e}");
                 throw;
             }
         }
@@ -97,6 +103,7 @@ namespace DebugOutputToasts
             }
             catch (Exception e)
             {
+                Errors.WriteLine($"[{DateTime.Now.ToString("s")}] {e}");
                 throw;
             }
         }
