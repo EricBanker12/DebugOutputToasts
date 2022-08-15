@@ -529,7 +529,7 @@ namespace DebugOutputToasts
             if (MessageHistory.Count >= Config.MaxDebugMessageHistory)
             {
                 var removed = MessageHistory.Dequeue();
-                if (MessagePanel.Children[MessagePanel.Children.Count - 1].Uid == removed.uid)
+                if (MessagePanel.Children.Count > 0 && MessagePanel.Children[MessagePanel.Children.Count - 1].Uid == removed.uid)
                     MessagePanel.Children.RemoveAt(MessagePanel.Children.Count - 1);
             }
             string uid = Guid.NewGuid().ToString();
