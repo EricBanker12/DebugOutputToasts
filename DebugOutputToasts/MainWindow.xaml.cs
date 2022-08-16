@@ -78,6 +78,16 @@ namespace DebugOutputToasts
             EventHandler closeEventHandler = (sender, e) => this.Close();
             NotifyIcon.ContextMenu.MenuItems.Add("Show", showEventHandler);
             NotifyIcon.ContextMenu.MenuItems.Add("Exit", closeEventHandler);
+
+            // Apply launch args
+            string[] args = Environment.GetCommandLineArgs();
+
+            // "-m" to start minimized
+            if (args.Contains("-m"))
+            {
+                this.WindowState = WindowState.Minimized;
+                Window_Deactivated(null, null);
+            }
         }
 
         #region Event Handlers
