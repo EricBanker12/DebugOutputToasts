@@ -30,9 +30,9 @@ namespace DebugOutputToasts
                 Errors.AutoFlush = true;
             }
 
-            AppDomain.CurrentDomain.UnhandledException += (sender, ex) => { Errors.WriteLine($"[{DateTime.Now:s)}] {ex.ExceptionObject}"); };
+            AppDomain.CurrentDomain.UnhandledException += (sender, ex) => { Errors.WriteLine($"[{DateTime.Now:s}] {ex.ExceptionObject}"); };
 
-            TaskScheduler.UnobservedTaskException += (sender, ex) => { Errors.WriteLine($"[{DateTime.Now:s)}] {ex.Exception}"); };
+            TaskScheduler.UnobservedTaskException += (sender, ex) => { Errors.WriteLine($"[{DateTime.Now:s}] {ex.Exception}"); };
         }
     }
 }
