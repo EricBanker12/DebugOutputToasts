@@ -1,7 +1,10 @@
 ﻿using DebugOutputToasts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace UnitTestProject1
@@ -20,17 +23,17 @@ namespace UnitTestProject1
         [TestMethod]
         public async Task TestRead()
         {
-            string s_out = "";
+            ConcurrentQueue<string> outQueue = new ConcurrentQueue<string>();
 
-            var monitor = new DebugOutputMonitor(output => { s_out = output.outputDebugString; });
+            var monitor = new DebugOutputMonitor(output => { outQueue.Enqueue(output.outputDebugString); });
 
-            var s = "Hello World!";
-            Debug.WriteLine(s);
+            var msg = "Hello World!";
+            Debug.WriteLine(msg);
 
-            await Task.Delay(500);
+            await Task.Delay(50);
 
-            Assert.AreEqual(s, s_out);
-
+            Assert.IsTrue(outQueue.Contains(msg + Environment.NewLine));
+            
             monitor.Dispose();
         }
     }

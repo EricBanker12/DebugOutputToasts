@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
-using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,8 +19,7 @@ namespace DebugOutputToasts
         private MemoryMappedFile dbwin_buffer;
         private EventWaitHandle dbwin_buffer_ready;
         private EventWaitHandle dbwin_data_ready;
-        private Queue<MemoryStream> dbwin_queue;
-        private StreamWriter Errors;
+        private ConcurrentQueue<MemoryStream> dbwin_queue;
 
         private bool disposedValue;
         private CancellationTokenSource cancellation;
@@ -35,13 +34,9 @@ namespace DebugOutputToasts
         /// Creates a OutputDebugString monitor, which calls an action every message.
         /// </summary>
         /// <param name="action"></param>
-        public DebugOutputMonitor(Action<DebugOutput> action) : this(action, null) { }
-        public DebugOutputMonitor(Action<DebugOutput> action, StreamWriter Errors)
+        public DebugOutputMonitor(Action<DebugOutput> action)
         {
-            if (Errors != null) this.Errors = Errors;
-            else this.Errors = (StreamWriter)Console.Error;
-
-            dbwin_queue = new Queue<MemoryStream>();
+            dbwin_queue = new ConcurrentQueue<MemoryStream>();
             
             dbwin_buffer = MemoryMappedFile.CreateNew(DBWIN_BUFFER, 4096, MemoryMappedFileAccess.ReadWrite);
             dbwin_buffer_ready = new EventWaitHandle(true, EventResetMode.AutoReset, DBWIN_BUFFER_READY);
@@ -58,27 +53,25 @@ namespace DebugOutputToasts
             {
                 while (!token.IsCancellationRequested)
                 {
-                    if (dbwin_queue.Any())
+                    if (!dbwin_queue.IsEmpty && dbwin_queue.TryDequeue(out MemoryStream dataStream))
                     {
-                        using (MemoryStream dataStream = dbwin_queue.Dequeue())
-                        {
-                            byte[] data = dataStream.GetBuffer();
+                        byte[] data = dataStream.GetBuffer();
 
-                            uint dwProcessId = BitConverter.ToUInt32(data, 0);
-                            string outputDebugString = Encoding.ASCII.GetString(data, 4, 4096 - 4);
+                        uint dwProcessId = BitConverter.ToUInt32(data, 0);
+                        string outputDebugString = Encoding.ASCII.GetString(data, 4, 4096 - 4);
                             
-                            int length = outputDebugString.IndexOf('\0');
-                            if (length > 0) outputDebugString = outputDebugString.Substring(0, length);
+                        int length = outputDebugString.IndexOf('\0');
+                        if (length > 0) outputDebugString = outputDebugString.Substring(0, length);
                             
-                            action(new DebugOutput { dwProcessId = dwProcessId, outputDebugString = outputDebugString });
-                        }
+                        action(new DebugOutput { dwProcessId = dwProcessId, outputDebugString = outputDebugString });
+
+                        dataStream.Dispose();
                     }
                     await Task.Delay(1);
                 }
             }
             catch (Exception e)
             {
-                Errors.WriteLine($"[{DateTime.Now.ToString("s")}] {e}");
                 throw;
             }
         }
@@ -103,7 +96,6 @@ namespace DebugOutputToasts
             }
             catch (Exception e)
             {
-                Errors.WriteLine($"[{DateTime.Now.ToString("s")}] {e}");
                 throw;
             }
         }
@@ -121,9 +113,9 @@ namespace DebugOutputToasts
                     dbwin_data_ready.Dispose();
                     dbwin_buffer.Dispose();
                     
-                    while (dbwin_queue.Any())
+                    while (!dbwin_queue.IsEmpty && dbwin_queue.TryDequeue(out MemoryStream dataStream))
                     {
-                        dbwin_queue.Dequeue().Dispose();
+                        dataStream.Dispose();
                     }
                     dbwin_queue = null;
 
