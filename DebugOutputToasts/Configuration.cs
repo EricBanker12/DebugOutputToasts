@@ -13,6 +13,7 @@
         public Filter[] ExclusionFilters { get; set; } = new Filter[] { new Filter() };
         public ReplacementFilter[] ReplacementFilters { get; set; } = new ReplacementFilter[] { new ReplacementFilter() };
         public bool MinimizeToTrayIcon { get; set; } = false;
+        public bool StartWithLogin { get; set; } = false;
     }
 
     public class Filter

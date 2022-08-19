@@ -71,6 +71,11 @@
                     <Label Grid.Row="3" Grid.Column="1">
                         <CheckBox x:Name="chkMinimizeToTray" Checked="CheckBox_Checked" Unchecked="CheckBox_Unhecked"/>
                     </Label>
+
+                    <Label Grid.Row="3" Grid.Column="2" ToolTip="Start with Windows log-in (and starts minimized).">Autostart:</Label>
+                    <Label Grid.Row="3" Grid.Column="3">
+                        <CheckBox x:Name="chkStartWithLogin" Checked="CheckBox_Checked" Unchecked="CheckBox_Unhecked"/>
+                    </Label>
                 </Grid>
             </TabItem>
 

@@ -1,9 +1,11 @@
 ﻿using Microsoft.Toolkit.Uwp.Notifications;
+using Microsoft.Win32.TaskScheduler;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using Task = System.Threading.Tasks.Task;
 
 namespace DebugOutputToasts
 {
@@ -88,6 +91,9 @@ namespace DebugOutputToasts
                 this.WindowState = WindowState.Minimized;
                 Window_Deactivated(null, null);
             }
+
+            // Update TaskScheduler
+            SetTaskScheduler(Config.StartWithLogin);
         }
 
         #region Event Handlers
@@ -184,6 +190,10 @@ namespace DebugOutputToasts
                 case "chkMinimizeToTray":
                     Config.MinimizeToTrayIcon = true;
                     break;
+                case "chkStartWithLogin":
+                    Config.StartWithLogin = true;
+                    SetTaskScheduler(true);
+                    break;
             }
             Nett.Toml.WriteFile(Config, ConfigPath);
         }
@@ -207,6 +217,10 @@ namespace DebugOutputToasts
                     break;
                 case "chkMinimizeToTray":
                     Config.MinimizeToTrayIcon = false;
+                    break;
+                case "chkStartWithLogin":
+                    Config.StartWithLogin = false;
+                    SetTaskScheduler(false);
                     break;
             }
             Nett.Toml.WriteFile(Config, ConfigPath);
@@ -990,6 +1004,47 @@ namespace DebugOutputToasts
 
             foreach (var element in rowElements)
                 Grid.SetRow(element, adjacentIndex);
+        }
+
+        private void SetTaskScheduler(bool enable)
+        {
+            using (TaskService ts = new TaskService())
+            {
+                var taskName = "DebugOutputToasts Autostart";
+                var task = ts.FindTask(taskName);
+
+                if (task == null)
+                {
+                    var def = ts.NewTask();
+                    def.Settings.DisallowStartIfOnBatteries = false;
+                    def.Settings.StopIfGoingOnBatteries = false;
+                    def.Settings.ExecutionTimeLimit = TimeSpan.Zero;
+                    
+                    var trigger = new LogonTrigger();
+                    //taskTrigger.ExecutionTimeLimit = TimeSpan.Zero;
+                    trigger.UserId = Environment.UserName;
+                    def.Triggers.Add(trigger);
+
+                    var action = new ExecAction();
+                    action.Path = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                    action.WorkingDirectory = Path.GetDirectoryName(action.Path);
+                    action.Arguments = "-m";
+                    def.Actions.Add(action);
+
+                    task = ts.RootFolder.RegisterTaskDefinition(taskName, def);
+                    task.Enabled = enable;
+                }
+                else
+                {
+                    task.Enabled = enable;
+
+                    var action = (ExecAction)task.Definition.Actions.First();
+                    action.Path = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                    action.WorkingDirectory = Path.GetDirectoryName(action.Path);
+
+                    task.RegisterChanges();
+                }
+            }
         }
         #endregion
 
