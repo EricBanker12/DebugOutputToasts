@@ -127,6 +127,7 @@ namespace DebugOutputToasts
             chkThrottle.IsChecked = Config.Throttle;
             chkDebounce.IsChecked = Config.Debounce;
             chkMinimizeToTray.IsChecked = Config.MinimizeToTrayIcon;
+            chkStartWithLogin.IsChecked = Config.StartWithLogin;
             txtThrottle.Text = Config.ThrottleTime.ToString();
             txtDebounce.Text = Config.DebounceTime.ToString();
 
@@ -192,7 +193,7 @@ namespace DebugOutputToasts
                     break;
                 case "chkStartWithLogin":
                     Config.StartWithLogin = true;
-                    SetTaskScheduler(true);
+                    SetTaskScheduler(Config.StartWithLogin);
                     break;
             }
             Nett.Toml.WriteFile(Config, ConfigPath);
@@ -220,7 +221,7 @@ namespace DebugOutputToasts
                     break;
                 case "chkStartWithLogin":
                     Config.StartWithLogin = false;
-                    SetTaskScheduler(false);
+                    SetTaskScheduler(Config.StartWithLogin);
                     break;
             }
             Nett.Toml.WriteFile(Config, ConfigPath);
@@ -1016,6 +1017,7 @@ namespace DebugOutputToasts
                 if (task == null)
                 {
                     var def = ts.NewTask();
+                    def.Settings.Enabled = enable;
                     def.Settings.DisallowStartIfOnBatteries = false;
                     def.Settings.StopIfGoingOnBatteries = false;
                     def.Settings.ExecutionTimeLimit = TimeSpan.Zero;
@@ -1032,15 +1034,14 @@ namespace DebugOutputToasts
                     def.Actions.Add(action);
 
                     task = ts.RootFolder.RegisterTaskDefinition(taskName, def);
-                    task.Enabled = enable;
                 }
                 else
                 {
-                    task.Enabled = enable;
-
                     var action = (ExecAction)task.Definition.Actions.First();
                     action.Path = System.Reflection.Assembly.GetExecutingAssembly().Location;
                     action.WorkingDirectory = Path.GetDirectoryName(action.Path);
+
+                    task.Definition.Settings.Enabled = enable;
 
                     task.RegisterChanges();
                 }
