@@ -191,10 +191,6 @@ namespace DebugOutputToasts
                 case "chkMinimizeToTray":
                     Config.MinimizeToTrayIcon = true;
                     break;
-                case "chkStartWithLogin":
-                    Config.StartWithLogin = true;
-                    SetTaskScheduler(Config.StartWithLogin);
-                    break;
             }
             Nett.Toml.WriteFile(Config, ConfigPath);
         }
@@ -218,10 +214,6 @@ namespace DebugOutputToasts
                     break;
                 case "chkMinimizeToTray":
                     Config.MinimizeToTrayIcon = false;
-                    break;
-                case "chkStartWithLogin":
-                    Config.StartWithLogin = false;
-                    SetTaskScheduler(Config.StartWithLogin);
                     break;
             }
             Nett.Toml.WriteFile(Config, ConfigPath);
@@ -1005,47 +997,6 @@ namespace DebugOutputToasts
 
             foreach (var element in rowElements)
                 Grid.SetRow(element, adjacentIndex);
-        }
-
-        private void SetTaskScheduler(bool enable)
-        {
-            using (TaskService ts = new TaskService())
-            {
-                var taskName = "DebugOutputToasts Autostart";
-                var task = ts.FindTask(taskName);
-
-                if (task == null)
-                {
-                    var def = ts.NewTask();
-                    def.Settings.Enabled = enable;
-                    def.Settings.DisallowStartIfOnBatteries = false;
-                    def.Settings.StopIfGoingOnBatteries = false;
-                    def.Settings.ExecutionTimeLimit = TimeSpan.Zero;
-                    
-                    var trigger = new LogonTrigger();
-                    //taskTrigger.ExecutionTimeLimit = TimeSpan.Zero;
-                    trigger.UserId = Environment.UserName;
-                    def.Triggers.Add(trigger);
-
-                    var action = new ExecAction();
-                    action.Path = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                    action.WorkingDirectory = Path.GetDirectoryName(action.Path);
-                    action.Arguments = "-m";
-                    def.Actions.Add(action);
-
-                    task = ts.RootFolder.RegisterTaskDefinition(taskName, def);
-                }
-                else
-                {
-                    var action = (ExecAction)task.Definition.Actions.First();
-                    action.Path = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                    action.WorkingDirectory = Path.GetDirectoryName(action.Path);
-
-                    task.Definition.Settings.Enabled = enable;
-
-                    task.RegisterChanges();
-                }
-            }
         }
         #endregion
 
