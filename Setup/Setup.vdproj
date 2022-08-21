@@ -12441,7 +12441,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:DebugOutputToasts"
         "ProductCode" = "8:{47A9ED8A-832E-4BB0-AFA4-2F099751E182}"
-        "PackageCode" = "8:{7A36D3FB-0815-4A09-A6A2-7ABA71AAC124}"
+        "PackageCode" = "8:{DB1EA792-31FC-4E0D-ACCD-BF7A48DCCF2A}"
         "UpgradeCode" = "8:{2F8901F2-8C94-4C69-93F5-CC1B9B712A58}"
         "AspNetVersion" = "8:"
         "RestartWWWService" = "11:FALSE"

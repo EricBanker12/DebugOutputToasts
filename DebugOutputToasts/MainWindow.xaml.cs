@@ -30,7 +30,6 @@ namespace DebugOutputToasts
         
         private Task FilterTask = null;
         private Task NotifyTask = null;
-        private Task RefreshTask = null;
         
         private CancellationTokenSource FilterCancel = null;
         private CancellationTokenSource NotifyCancel = null;
@@ -87,10 +86,7 @@ namespace DebugOutputToasts
 
             // "-m" to start minimized
             if (args.Contains("-m"))
-            {
                 this.WindowState = WindowState.Minimized;
-                Window_Deactivated(null, null);
-            }
 
             // Update TaskScheduler
             SetTaskScheduler(Config.StartWithLogin);
@@ -143,22 +139,8 @@ namespace DebugOutputToasts
             // create monitor
             Monitor = new DebugOutputMonitor(DebugOutputHandler);
 
-            //// Refresh monitor every 12 hours, a workaround for unknown crashing on long running instance.
-            //if (RefreshCancel != null && !RefreshCancel.IsCancellationRequested)
-            //    RefreshCancel.Cancel();
-            
-            //RefreshCancel = new CancellationTokenSource();
-            //RefreshTask = new Task(async () =>
-            //{
-            //    while (!RefreshCancel.IsCancellationRequested)
-            //    {
-            //        Monitor.Dispose();
-            //        Monitor = new DebugOutputMonitor(DebugOutputHandler);
-            //        await Task.Delay(TimeSpan.FromHours(12));
-            //    }
-            //}, RefreshCancel.Token);
-            
-            //RefreshTask.Start(TaskScheduler.FromCurrentSynchronizationContext());
+            if (this.WindowState == WindowState.Minimized)
+                Window_Deactivated(null, null);
         }
 
         private void StackPanel_Unloaded_MessagePanel(object sender, RoutedEventArgs e)
@@ -511,6 +493,16 @@ namespace DebugOutputToasts
             FilterTask = ReapplyFilters(FilterCancel.Token).ContinueWith(t => { try { FilterCancel.Dispose(); } catch (Exception) { } }, TaskScheduler.FromCurrentSynchronizationContext());
 
             Nett.Toml.WriteFile(Config, ConfigPath);
+        }
+
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            if (Config.MinimizeToTrayIcon && this.WindowState == WindowState.Minimized)
+            {
+                this.Hide();
+                NotifyIcon.Visible = true;
+                //NotifyIcon.ShowBalloonTip(5000, "Minimized to a tray icon", "Left-click to show. Right-click for options.", System.Windows.Forms.ToolTipIcon.None);
+            }
         }
         #endregion
 
@@ -1017,14 +1009,13 @@ namespace DebugOutputToasts
                 if (task == null)
                 {
                     var def = ts.NewTask();
-                    def.Settings.Enabled = enable;
                     def.Settings.DisallowStartIfOnBatteries = false;
                     def.Settings.StopIfGoingOnBatteries = false;
                     def.Settings.ExecutionTimeLimit = TimeSpan.Zero;
-                    
+
                     var trigger = new LogonTrigger();
-                    //taskTrigger.ExecutionTimeLimit = TimeSpan.Zero;
                     trigger.UserId = Environment.UserName;
+                    trigger.Enabled = enable;
                     def.Triggers.Add(trigger);
 
                     var action = new ExecAction();
@@ -1037,26 +1028,26 @@ namespace DebugOutputToasts
                 }
                 else
                 {
+                    var userId = $"{Environment.UserDomainName}\\{Environment.UserName}";
+                    var trigger = (LogonTrigger)task.Definition.Triggers.Where(t => ((LogonTrigger)t).UserId == userId).FirstOrDefault();
+                    if (trigger == default(LogonTrigger))
+                    {
+                        trigger = new LogonTrigger();
+                        trigger.UserId = userId;
+                        task.Definition.Triggers.Add(trigger);
+                    }
+                    
+                    trigger.Enabled = enable;
+                    task.Definition.Settings.Enabled = true; // fix old tasks after moving "enabled" from task.Definition.Settings to task.Definition.Triggers
+
                     var action = (ExecAction)task.Definition.Actions.First();
                     action.Path = System.Reflection.Assembly.GetExecutingAssembly().Location;
                     action.WorkingDirectory = Path.GetDirectoryName(action.Path);
-
-                    task.Definition.Settings.Enabled = enable;
 
                     task.RegisterChanges();
                 }
             }
         }
         #endregion
-
-        private void Window_Deactivated(object sender, EventArgs e)
-        {
-            if (Config.MinimizeToTrayIcon && this.WindowState == WindowState.Minimized)
-            {
-                this.Hide();
-                NotifyIcon.Visible = true;
-                //NotifyIcon.ShowBalloonTip(5000, "Minimized to a tray icon", "Left-click to show. Right-click for options.", System.Windows.Forms.ToolTipIcon.None);
-            }
-        }
     }
 }
